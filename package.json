@@ -1,7 +1,7 @@
 {
   "name": "fx250",
   "version": "0.0.0",
-  "description": "Auto add lit-element custom element name to HTMLElementTagNameMap in a TypeScript file",
+  "description": "Auto add lit-element custom element name to HTMLElementTagNameMap in TypeScript files",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
   "author": "Mgen (https://www.mgenware.com)",
@@ -38,10 +38,12 @@
     "eslint": "^6.8.0",
     "mocha": "^6.2.2",
     "source-map-support": "^0.5.16",
+    "temp-write": "^4.0.0",
     "typescript": "^3.7.4"
   },
   "dependencies": {
-    "m-fs": "^2.3.2",
+    "fast-glob": "^3.1.1",
+    "m-fs": "^2.3.4",
     "meow": "^6.0.0"
   }
 }

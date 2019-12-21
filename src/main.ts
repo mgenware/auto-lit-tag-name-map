@@ -1,127 +1,51 @@
-import * as ts from 'typescript';
+#!/usr/bin/env node
 
-const sourceFile = ts.createSourceFile(
-  'test.ts',
-  '',
-  ts.ScriptTarget.ES2015,
-  true,
-  ts.ScriptKind.TS,
+import * as parseArgs from 'meow';
+import * as fg from 'fast-glob';
+import * as mfs from 'm-fs';
+import convert from './convert';
+import * as ts from 'typescript';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pkg = require('../package.json');
+const CMD = `npx ${pkg.name}@${parseInt(pkg.version.split('.')[0])}`;
+
+const cli = parseArgs(
+  `
+    Usage
+      $ ${CMD} <pattern>
+    <pattern> File search pattern.
+ 
+    Options
+      --input-file     Commits file path (one commit hash per line).
+      --input-range    Commit range, "abcabcabc..abcabcabc" (You must be under the repo directory in order for this to work).
+      --out-file       If specified, writes the output to the file.
+ 
+    Examples
+      $ ${CMD} "./components/**/*.ts"
+`,
+  {
+    flags: {},
+  },
 );
 
-enum SourceState {
-  root,
-  declareGlobal,
-}
-
-let elementName: string | undefined;
-let elementType: string | undefined;
-let state = SourceState.root;
-
-function isIdentifierWithName(node: ts.Node, value: string): boolean {
-  return ts.isIdentifier(node) && node.getText() === value;
-}
-
-function isTypeReferenceWithName(node: ts.Node, value: string): boolean {
-  return (
-    ts.isTypeReferenceNode(node) && isIdentifierWithName(node.typeName, value)
-  );
-}
-
-function getCustomElementName(decorators: ts.Decorator[]): string | null {
-  for (const decorator of decorators) {
-    const { expression } = decorator;
-    if (
-      ts.isCallExpression(expression) &&
-      isIdentifierWithName(expression, 'customElement')
-    ) {
-      if (!expression.arguments.length) {
-        return null;
-      }
-      const firstArg = expression.arguments[0];
-      if (!ts.isStringLiteral(firstArg)) {
-        return null;
-      }
-      return firstArg.text;
-    }
+(async () => {
+  console.log(`>>> ${CMD} ${pkg.version}`);
+  const glob = cli.input[0];
+  if (!glob) {
+    throw new Error(
+      `Missing required arguments. Please use "${CMD} --help" for help.`,
+    );
   }
-  return null;
-}
-
-const transformer = <T extends ts.Node>(context: ts.TransformationContext) => (
-  rootNode: T,
-) => {
-  function visit(node: ts.Node): ts.Node {
-    switch (state) {
-      case SourceState.root: {
-        if (ts.isClassDeclaration(node) && node.decorators) {
-          const customElementName = getCustomElementName([...node.decorators]);
-          if (customElementName) {
-            elementName = customElementName;
-            elementType = node.name;
-          }
-          return node;
-        }
-        if (
-          ts.isModuleDeclaration(node) &&
-          node.modifiers &&
-          node.modifiers[0].kind === ts.SyntaxKind.DeclareKeyword &&
-          isIdentifierWithName(node.name, 'global')
-        ) {
-          state = SourceState.declareGlobal;
-        }
-      }
-      case SourceState.declareGlobal: {
-        // Search for `interface HTMLElementTagNameMap`.
-        if (
-          ts.isInterfaceDeclaration(node) &&
-          isIdentifierWithName(node.name, 'HTMLElementTagNameMap')
-        ) {
-          let declared = false;
-          for (const member of node.members) {
-            if (
-              !ts.isPropertySignature(member) ||
-              !member.type ||
-              !isIdentifierWithName(member.name, elementName) ||
-              isTypeReferenceWithName(member.type, elementType)
-            ) {
-              continue;
-            }
-            declared = true;
-          }
-          console.log(' find ', declared);
-          if (declared) {
-            return node;
-          }
-          const propSig = ts.createPropertySignature(
-            undefined,
-            ts.createStringLiteral(elementName),
-            undefined,
-            ts.createTypeReferenceNode(
-              ts.createIdentifier(elementType),
-              undefined,
-            ),
-            undefined,
-          );
-
-          return ts.createInterfaceDeclaration(
-            node.decorators,
-            node.modifiers,
-            node.name,
-            node.typeParameters,
-            node.heritageClauses,
-            [...node.members, propSig],
-          );
-        }
-      }
-    }
-    return ts.visitEachChild(node, visit, context);
-  } // end of visit func.
-  return ts.visitNode(rootNode, visit);
-};
-
-const result = ts.transform(sourceFile, [transformer]);
-
-const printer: ts.Printer = ts.createPrinter();
-const transformedSourceFile = result.transformed[0] as ts.SourceFile;
-console.log(printer.printFile(transformedSourceFile));
-result.dispose();
+  const files = await fg([glob]);
+  if (!files || !files.length) {
+    console.log(`No file matches the pattern "${glob}"`);
+  }
+  await Promise.all(
+    files.map(async file => {
+      console.log(file);
+      const contents = await mfs.readTextFileAsync(file);
+      const converted = convert(contents, ts.ScriptTarget.ES2015);
+      await mfs.writeFileAsync(file, converted);
+    }),
+  );
+})();
