@@ -1,12 +1,15 @@
 import * as ts from 'typescript';
-
-enum SourceState {
-  root,
-  declareGlobal,
-}
+const htmlElementTagNameMap = 'HTMLElementTagNameMap';
 
 function isIdentifierWithName(node: ts.Node, value: string): boolean {
   return ts.isIdentifier(node) && node.getText() === value;
+}
+
+function isHTMLElementTagNameMap(node: ts.Node): boolean {
+  return (
+    ts.isInterfaceDeclaration(node) &&
+    isIdentifierWithName(node.name, htmlElementTagNameMap)
+  );
 }
 
 function isTypeReferenceWithName(node: ts.Node, value: string): boolean {
@@ -35,6 +38,54 @@ function getCustomElementName(decorators: ts.Decorator[]): string | null {
   return null;
 }
 
+function createInterfaceDeclaration(
+  node: ts.InterfaceDeclaration | undefined,
+  name: ts.Identifier,
+  members: readonly ts.TypeElement[],
+): ts.InterfaceDeclaration {
+  return ts.createInterfaceDeclaration(
+    node?.decorators,
+    node?.modifiers,
+    name,
+    node?.typeParameters,
+    node?.heritageClauses,
+    members,
+  );
+}
+
+function setTagsToHTMLElementTagNameMap(
+  tags: Map<string, string>,
+  node: ts.InterfaceDeclaration,
+): ts.InterfaceDeclaration {
+  const members = [...node.members];
+  for (const [elementName, elementType] of tags.entries()) {
+    let declared = false;
+    for (const member of node.members) {
+      if (
+        !ts.isPropertySignature(member) ||
+        !member.type ||
+        !isIdentifierWithName(member.name, elementName) ||
+        isTypeReferenceWithName(member.type, elementType)
+      ) {
+        continue;
+      }
+      declared = true;
+    }
+    if (declared) {
+      return node;
+    }
+    const propSig = ts.createPropertySignature(
+      undefined,
+      ts.createStringLiteral(elementName),
+      undefined,
+      ts.createTypeReferenceNode(ts.createIdentifier(elementType), undefined),
+      undefined,
+    );
+    members.push(propSig);
+  }
+  return createInterfaceDeclaration(node, node.name, members);
+}
+
 export default function convert(
   src: string,
   scriptTarget: ts.ScriptTarget,
@@ -47,79 +98,71 @@ export default function convert(
     ts.ScriptKind.TS,
   );
 
-  let elementName: string | undefined;
-  let elementType: string | undefined;
-  let state = SourceState.root;
+  // Whether `declare global` block has been found.
+  let declareGlobalFound = false;
+  // Whether `interface HTMLElementTagNameMap` has been found.
+  let elementTagMapFound = false;
+  const tags = new Map<string, string>();
+  for (const st of sourceFile.statements) {
+    if (ts.isClassDeclaration(st) && st.decorators) {
+      const customElementName = getCustomElementName([...st.decorators]);
+      if (customElementName && st.name) {
+        const elementName = customElementName;
+        const elementType = st.name.getText();
+        tags.set(elementName, elementType);
+      }
+    }
+  }
+
+  if (!tags.size) {
+    return src;
+  }
 
   const transformer = <T extends ts.Node>(
     context: ts.TransformationContext,
   ) => (rootNode: T) => {
     function visit(node: ts.Node): ts.Node {
-      switch (state) {
-        case SourceState.root: {
-          if (ts.isClassDeclaration(node) && node.decorators) {
-            const customElementName = getCustomElementName([
-              ...node.decorators,
-            ]);
-            if (customElementName && node.name) {
-              elementName = customElementName;
-              elementType = node.name.getText();
-            }
-            return node;
-          }
-          if (
-            ts.isModuleDeclaration(node) &&
-            node.modifiers &&
-            node.modifiers[0].kind === ts.SyntaxKind.DeclareKeyword &&
-            isIdentifierWithName(node.name, 'global')
-          ) {
-            state = SourceState.declareGlobal;
-          }
-        }
-        case SourceState.declareGlobal: {
-          // Search for `interface HTMLElementTagNameMap`.
-          if (
-            elementName &&
-            elementType &&
-            ts.isInterfaceDeclaration(node) &&
-            isIdentifierWithName(node.name, 'HTMLElementTagNameMap')
-          ) {
-            let declared = false;
-            for (const member of node.members) {
-              if (
-                !ts.isPropertySignature(member) ||
-                !member.type ||
-                !isIdentifierWithName(member.name, elementName) ||
-                isTypeReferenceWithName(member.type, elementType)
-              ) {
-                continue;
-              }
-              declared = true;
-            }
-            if (declared) {
-              return node;
-            }
-            const propSig = ts.createPropertySignature(
-              undefined,
-              ts.createStringLiteral(elementName),
-              undefined,
-              ts.createTypeReferenceNode(
-                ts.createIdentifier(elementType),
-                undefined,
-              ),
-              undefined,
-            );
+      if (
+        !declareGlobalFound &&
+        ts.isModuleDeclaration(node) &&
+        node.modifiers &&
+        node.modifiers[0].kind === ts.SyntaxKind.DeclareKeyword &&
+        isIdentifierWithName(node.name, 'global') &&
+        node.body &&
+        ts.isModuleBlock(node.body)
+      ) {
+        declareGlobalFound = true;
+        // Checks if `declare global` contains any `HTMLElementTagNameMap` block.
+        const { statements } = node.body;
+        elementTagMapFound = statements.some(isHTMLElementTagNameMap);
+        // If no `HTMLElementTagNameMap` found, create a new one here.
+        if (!elementTagMapFound) {
+          // Create an empty interface declaration.
+          let interfaceDec = createInterfaceDeclaration(
+            undefined,
+            ts.createIdentifier(htmlElementTagNameMap),
+            [],
+          );
+          // Set tags properties.
+          interfaceDec = setTagsToHTMLElementTagNameMap(tags, interfaceDec);
 
-            return ts.createInterfaceDeclaration(
-              node.decorators,
-              node.modifiers,
-              node.name,
-              node.typeParameters,
-              node.heritageClauses,
-              [...node.members, propSig],
-            );
-          }
+          return ts.createModuleDeclaration(
+            undefined,
+            [ts.createModifier(ts.SyntaxKind.DeclareKeyword)],
+            ts.createIdentifier('global'),
+            ts.createModuleBlock([...statements, interfaceDec]),
+            ts.NodeFlags.ExportContext |
+              ts.NodeFlags.GlobalAugmentation |
+              ts.NodeFlags.ContextFlags,
+          );
         }
+      }
+      // If `elementTagMapFound` then we are searching for `HTMLElementTagNameMap` block.
+      if (elementTagMapFound && isHTMLElementTagNameMap(node)) {
+        return setTagsToHTMLElementTagNameMap(
+          tags,
+          node as ts.InterfaceDeclaration,
+        );
       }
       return ts.visitEachChild(node, visit, context);
     } // end of visit func.

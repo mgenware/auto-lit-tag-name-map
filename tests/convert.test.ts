@@ -28,3 +28,32 @@ declare global {
 `,
   );
 });
+
+it('Add HTMLElementTagNameMap', async () => {
+  const src = `import { html, customElement, property } from 'lit-element';
+@customElement('my-element')
+export class MyElement extends LitElement { }
+declare global {
+    interface MyInterface {
+        a?: int;
+    }
+}`;
+
+  const res = convert(src, ts.ScriptTarget.ES2015);
+  assert.equal(
+    res,
+    `import { html, customElement, property } from 'lit-element';
+@customElement('my-element')
+export class MyElement extends LitElement {
+}
+declare global {
+    interface MyInterface {
+        a?: int;
+    }
+    interface HTMLElementTagNameMap {
+        "my-element": MyElement;
+    }
+}
+`,
+  );
+});

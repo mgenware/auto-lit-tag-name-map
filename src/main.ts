@@ -29,7 +29,8 @@ const cli = parseArgs(
 );
 
 (async () => {
-  console.log(`>>> ${CMD} ${pkg.version}`);
+  // eslint-disable-next-line no-console
+  console.info(`>>> ${CMD} ${pkg.version}`);
   const glob = cli.input[0];
   if (!glob) {
     throw new Error(
@@ -38,11 +39,10 @@ const cli = parseArgs(
   }
   const files = await fg([glob]);
   if (!files || !files.length) {
-    console.log(`No file matches the pattern "${glob}"`);
+    console.warn(`No file matches the pattern "${glob}"`);
   }
   await Promise.all(
     files.map(async file => {
-      console.log(file);
       const contents = await mfs.readTextFileAsync(file);
       const converted = convert(contents, ts.ScriptTarget.ES2015);
       await mfs.writeFileAsync(file, converted);
