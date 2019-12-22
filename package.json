@@ -1,6 +1,6 @@
 {
   "name": "auto-lit-tag-name-map",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Auto set lit-element HTMLElementTagNameMap for TypeScript",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
