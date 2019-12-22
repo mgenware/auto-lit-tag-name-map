@@ -1,18 +1,18 @@
 {
-  "name": "fx250",
+  "name": "auto-lit-tag-name-map",
   "version": "0.0.0",
-  "description": "Auto add lit-element custom element name to HTMLElementTagNameMap in TypeScript files",
+  "description": "Auto set lit-element HTMLElementTagNameMap for TypeScript",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
   "author": "Mgen (https://www.mgenware.com)",
-  "homepage": "https://github.com/mgenware/fx250",
-  "bugs": "https://github.com/mgenware/fx250/issues",
+  "homepage": "https://github.com/mgenware/auto-lit-tag-name-map",
+  "bugs": "https://github.com/mgenware/auto-lit-tag-name-map/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mgenware/fx250.git"
+    "url": "https://github.com/mgenware/auto-lit-tag-name-map.git"
   },
   "bin": {
-    "fx250": "./dist/main.js"
+    "auto-lit-tag-name-map": "./dist/main.js"
   },
   "license": "MIT",
   "scripts": {

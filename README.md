@@ -1,3 +1,3 @@
-# fx250 (Work in progress)
+# auto-lit-tag-name-map (Work in progress)
 
-Auto add lit-element custom element name to HTMLElementTagNameMap in TypeScript files.
+Auto set lit-element HTMLElementTagNameMap for TypeScript.
