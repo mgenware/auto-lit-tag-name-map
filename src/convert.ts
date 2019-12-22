@@ -5,14 +5,19 @@ function isIdentifierWithName(node: ts.Node, value: string): boolean {
   return ts.isIdentifier(node) && node.getText() === value;
 }
 
-function isHTMLElementTagNameMap(node: ts.Node): boolean {
+function isHTMLElementTagNameMap(
+  node: ts.Node,
+): node is ts.InterfaceDeclaration {
   return (
     ts.isInterfaceDeclaration(node) &&
     isIdentifierWithName(node.name, htmlElementTagNameMap)
   );
 }
 
-function isTypeReferenceWithName(node: ts.Node, value: string): boolean {
+function isTypeReferenceWithName(
+  node: ts.Node,
+  value: string,
+): node is ts.TypeReferenceNode {
   return (
     ts.isTypeReferenceNode(node) && isIdentifierWithName(node.typeName, value)
   );
@@ -86,6 +91,44 @@ function setTagsToHTMLElementTagNameMap(
   return createInterfaceDeclaration(node, node.name, members);
 }
 
+function createInterfaceDeclarationWithTags(
+  tags: Map<string, string>,
+): ts.InterfaceDeclaration {
+  // Create an empty interface declaration.
+  const interfaceDec = createInterfaceDeclaration(
+    undefined,
+    ts.createIdentifier(htmlElementTagNameMap),
+    [],
+  );
+  // Set tags properties.
+  return setTagsToHTMLElementTagNameMap(tags, interfaceDec);
+}
+
+function isGlobalModule(node: ts.Node): node is ts.ModuleDeclaration {
+  return (
+    ts.isModuleDeclaration(node) &&
+    !!node.modifiers &&
+    node.modifiers[0].kind === ts.SyntaxKind.DeclareKeyword &&
+    isIdentifierWithName(node.name, 'global') &&
+    !!node.body &&
+    ts.isModuleBlock(node.body)
+  );
+}
+
+function createModuleDeclaration(
+  statements: ts.Statement[],
+): ts.ModuleDeclaration {
+  return ts.createModuleDeclaration(
+    undefined,
+    [ts.createModifier(ts.SyntaxKind.DeclareKeyword)],
+    ts.createIdentifier('global'),
+    ts.createModuleBlock(statements),
+    ts.NodeFlags.ExportContext |
+      ts.NodeFlags.GlobalAugmentation |
+      ts.NodeFlags.ContextFlags,
+  );
+}
+
 export default function convert(
   src: string,
   scriptTarget: ts.ScriptTarget,
@@ -111,6 +154,8 @@ export default function convert(
         const elementType = st.name.getText();
         tags.set(elementName, elementType);
       }
+    } else if (isGlobalModule(st)) {
+      declareGlobalFound = true;
     }
   }
 
@@ -122,39 +167,23 @@ export default function convert(
     context: ts.TransformationContext,
   ) => (rootNode: T) => {
     function visit(node: ts.Node): ts.Node {
-      if (
-        !declareGlobalFound &&
-        ts.isModuleDeclaration(node) &&
-        node.modifiers &&
-        node.modifiers[0].kind === ts.SyntaxKind.DeclareKeyword &&
-        isIdentifierWithName(node.name, 'global') &&
-        node.body &&
-        ts.isModuleBlock(node.body)
-      ) {
+      if (!declareGlobalFound && ts.isSourceFile(node)) {
+        const interfaceDec = createInterfaceDeclarationWithTags(tags);
+        const moduleDec = createModuleDeclaration([interfaceDec]);
+        return ts.updateSourceFileNode(sourceFile, [
+          ...sourceFile.statements,
+          moduleDec,
+        ]);
+      }
+      if (declareGlobalFound && isGlobalModule(node)) {
         declareGlobalFound = true;
         // Checks if `declare global` contains any `HTMLElementTagNameMap` block.
-        const { statements } = node.body;
+        const { statements } = node.body as ts.ModuleBlock;
         elementTagMapFound = statements.some(isHTMLElementTagNameMap);
         // If no `HTMLElementTagNameMap` found, create a new one here.
         if (!elementTagMapFound) {
-          // Create an empty interface declaration.
-          let interfaceDec = createInterfaceDeclaration(
-            undefined,
-            ts.createIdentifier(htmlElementTagNameMap),
-            [],
-          );
-          // Set tags properties.
-          interfaceDec = setTagsToHTMLElementTagNameMap(tags, interfaceDec);
-
-          return ts.createModuleDeclaration(
-            undefined,
-            [ts.createModifier(ts.SyntaxKind.DeclareKeyword)],
-            ts.createIdentifier('global'),
-            ts.createModuleBlock([...statements, interfaceDec]),
-            ts.NodeFlags.ExportContext |
-              ts.NodeFlags.GlobalAugmentation |
-              ts.NodeFlags.ContextFlags,
-          );
+          const interfaceDec = createInterfaceDeclarationWithTags(tags);
+          return createModuleDeclaration([...statements, interfaceDec]);
         }
       }
       // If `elementTagMapFound` then we are searching for `HTMLElementTagNameMap` block.

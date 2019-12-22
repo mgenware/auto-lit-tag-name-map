@@ -57,3 +57,33 @@ declare global {
 `,
   );
 });
+
+it('Add global module', async () => {
+  const src = `import { html, customElement, property } from 'lit-element';
+@customElement('my-element')
+export class MyElement extends LitElement { }
+const i = 123;
+@customElement('my-element2')
+export class MyElement2 extends BaseElement { }
+`;
+
+  const res = convert(src, ts.ScriptTarget.ES2015);
+  assert.equal(
+    res,
+    `import { html, customElement, property } from 'lit-element';
+@customElement('my-element')
+export class MyElement extends LitElement {
+}
+const i = 123;
+@customElement('my-element2')
+export class MyElement2 extends BaseElement {
+}
+declare global {
+    interface HTMLElementTagNameMap {
+        "my-element": MyElement;
+        "my-element2": MyElement2;
+    }
+}
+`,
+  );
+});

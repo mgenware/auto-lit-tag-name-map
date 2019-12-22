@@ -15,11 +15,6 @@ const cli = parseArgs(
       $ ${CMD} <pattern>
     <pattern> File search pattern.
  
-    Options
-      --input-file     Commits file path (one commit hash per line).
-      --input-range    Commit range, "abcabcabc..abcabcabc" (You must be under the repo directory in order for this to work).
-      --out-file       If specified, writes the output to the file.
- 
     Examples
       $ ${CMD} "./components/**/*.ts"
 `,
