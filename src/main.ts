@@ -49,6 +49,7 @@ const cli = parseArgs(
     if (config) {
       config.parser = 'typescript';
       prettierConfig = config;
+      console.log(`💄 Loaded prettier config: ${JSON.stringify(config)}`);
     }
   }
   const files = await fg([glob]);
@@ -64,6 +65,7 @@ const cli = parseArgs(
         if (prettierConfig) {
           converted = prettier.format(converted, prettierConfig);
         }
+        console.log(file);
         await mfs.writeFileAsync(file, converted);
       }
     }),
