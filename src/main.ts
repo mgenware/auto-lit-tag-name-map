@@ -18,7 +18,7 @@ const cli = parseArgs(
     <pattern> File search pattern.
  
     Options
-      --prettier  Prettier config file used to format the input file.
+      --prettier  Prettier config file used to format the files to be rewritten.
 
     Examples
       $ ${CMD} "./components/**/*.ts"

@@ -35,11 +35,16 @@ declare global {
 
 ## Usage
 
+**Since we are using TypeScript AST to rewrite files, file formatting will be lost, so it's highly recommended that you use the `--prettier` CLI option to reformat the rewritten files in prettier.**
+
 ```
 Usage
-    $ npx auto-lit-tag-name-map@0 <pattern>
+$ npx auto-lit-tag-name-map@1 <pattern>
   <pattern> File search pattern.
 
+  Options
+    --prettier  Prettier config file used to format the files to be rewritten.
+
   Examples
-    $ npx auto-lit-tag-name-map@0 "./components/**/*.ts"
+    $ npx auto-lit-tag-name-map@1 "./components/**/*.ts"
 ```
