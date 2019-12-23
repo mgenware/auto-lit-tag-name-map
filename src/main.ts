@@ -40,7 +40,10 @@ const cli = parseArgs(
     files.map(async file => {
       const contents = await mfs.readTextFileAsync(file);
       const converted = convert(contents, ts.ScriptTarget.ES2015);
-      await mfs.writeFileAsync(file, converted);
+      // `convert` returns null if the current file doesn't need to be rewritten.
+      if (converted !== null) {
+        await mfs.writeFileAsync(file, converted);
+      }
     }),
   );
 })();
