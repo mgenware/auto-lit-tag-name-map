@@ -39,14 +39,14 @@
     "eslint": "^6.8.0",
     "mocha": "^6.2.2",
     "source-map-support": "^0.5.16",
-    "temp-write": "^4.0.0",
-    "typescript": "^3.7.4"
+    "temp-write": "^4.0.0"
   },
   "dependencies": {
     "cosmiconfig": "^6.0.0",
     "fast-glob": "^3.1.1",
     "m-fs": "^2.3.4",
     "meow": "^6.0.0",
-    "prettier": "^1.19.1"
+    "prettier": "^1.19.1",
+    "typescript": "^3.7.4"
   }
 }
