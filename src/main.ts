@@ -6,6 +6,7 @@ import * as mfs from 'm-fs';
 import convert from './convert';
 import * as ts from 'typescript';
 import * as prettier from 'prettier';
+import { cosmiconfig } from 'cosmiconfig';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pkg = require('../package.json');
 const CMD = `npx ${pkg.name}@${parseInt(pkg.version.split('.')[0])}`;
@@ -42,7 +43,9 @@ const cli = parseArgs(
   }
   let prettierConfig: prettier.Options | undefined;
   if (cli.flags.prettier) {
-    const config = await prettier.resolveConfig(`${cli.flags.prettier}`);
+    const explorer = cosmiconfig('prettier');
+    const rawConfig = await explorer.load(`${cli.flags.prettier}`);
+    const config = rawConfig?.config;
     if (config) {
       config.parser = 'typescript';
       prettierConfig = config;

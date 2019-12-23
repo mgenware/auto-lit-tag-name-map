@@ -15,7 +15,7 @@ it('CLI input file', async () => {
 export class MyElement extends LitElement { }
 declare global {
         interface HTMLElementTagNameMap {
-        "foo-bar": FooBar;
+        "foo-bar": FooBar;//comment
     }
 }`;
   const tmpFile = await tw(src);
@@ -30,7 +30,7 @@ export class MyElement extends LitElement {
 }
 declare global {
     interface HTMLElementTagNameMap {
-        "foo-bar": FooBar;
+        "foo-bar": FooBar; //comment
         "my-element": MyElement;
     }
 }
@@ -44,7 +44,7 @@ it('Prettier', async () => {
 export class MyElement extends LitElement { }
 declare global {
         interface HTMLElementTagNameMap {
-        "foo-bar": FooBar;
+        "foo-bar": FooBar;//comment
     }
 }`;
   const config = `module.exports = {
@@ -54,7 +54,6 @@ declare global {
 };`;
   const srcFile = await tw(src);
   const configFile = await tw(config, '.prettier.js');
-  console.log('🚒', configFile);
   await execAsync(
     `node ./dist/main.js "${srcFile}" --prettier "${configFile}"`,
   );
@@ -64,13 +63,12 @@ declare global {
     fileContents,
     `import { html, customElement, property } from 'lit-element';
 @customElement('my-element')
-export class MyElement extends LitElement {
-}
+export class MyElement extends LitElement {}
 declare global {
-    interface HTMLElementTagNameMap {
-        'foo-bar': FooBar;
-        'my-element': MyElement;
-    }
+  interface HTMLElementTagNameMap {
+    'foo-bar': FooBar; //comment
+    'my-element': MyElement;
+  }
 }
 `,
   );

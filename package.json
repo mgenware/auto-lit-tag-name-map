@@ -43,6 +43,7 @@
     "typescript": "^3.7.4"
   },
   "dependencies": {
+    "cosmiconfig": "^6.0.0",
     "fast-glob": "^3.1.1",
     "m-fs": "^2.3.4",
     "meow": "^6.0.0",
