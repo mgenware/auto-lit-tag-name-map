@@ -7,40 +7,14 @@
 
 Auto set TypeScript HTMLElementTagNameMap for lit-element.
 
-Before:
+## Limitations
 
-```ts
-import { customElement, LitElement } from 'lit-element';
+### Empty lines are not preserved
 
-@customElement('button-view')
-export class ButtonView extends LitElement {}
-
-@customElement('progress-view')
-export class ProgressView extends LitElement {}
-```
-
-After:
-
-```ts
-import { customElement, LitElement } from 'lit-element';
-
-@customElement('button-view')
-export class ButtonView extends LitElement {}
-
-@customElement('progress-view')
-export class ProgressView extends LitElement {}
-
-declare global {
-  interface HTMLElementTagNameMap {
-    'button-view': ButtonView;
-    'progress-view': ProgressView;
-  }
-}
-```
+- TypeScript compiler emit API does not preserve empty lines. [issue](https://github.com/Microsoft/TypeScript/issues/843).
+- Prettier does not add lines if they were removed. [issue](https://github.com/prettier/prettier/issues/1603).
 
 ## Usage
-
-**Since we are using TypeScript AST to rewrite files, file formatting will be lost, so it's highly recommended that you use the `--prettier` CLI option to reformat the rewritten files in prettier.**
 
 ```
 Usage
