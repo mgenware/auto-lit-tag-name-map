@@ -14,14 +14,14 @@ const CMD = `npx ${pkg.name}@${parseInt(pkg.version.split('.')[0])}`;
 const cli = parseArgs(
   `
     Usage
-      $ ${CMD} <pattern>
+      $ ${CMD} <pattern> [options]
     <pattern> File search pattern.
  
     Options
       --prettier  Prettier config file used to format the files to be rewritten.
 
     Examples
-      $ ${CMD} "./components/**/*.ts"
+      $ ${CMD} ./src/components/**/*.ts --prettier ./.prettierrc.js
 `,
   {
     flags: {

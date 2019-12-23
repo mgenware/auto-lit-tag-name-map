@@ -44,12 +44,12 @@ declare global {
 
 ```
 Usage
-$ npx auto-lit-tag-name-map@1 <pattern>
+$ npx auto-lit-tag-name-map@1 <pattern> [options]
   <pattern> File search pattern.
 
   Options
     --prettier  Prettier config file used to format the files to be rewritten.
 
   Examples
-    $ npx auto-lit-tag-name-map@1 "./components/**/*.ts"
+      $ auto-lit-tag-name-map@1 ./src/components/**/*.ts --prettier ./.prettierrc.js
 ```
