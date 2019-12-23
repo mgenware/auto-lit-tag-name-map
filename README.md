@@ -1,6 +1,11 @@
 # auto-lit-tag-name-map
 
-Auto set lit-element HTMLElementTagNameMap for TypeScript.
+[![MEAN Module](https://img.shields.io/badge/MEAN%20Module-TypeScript-blue.svg?style=flat-square)](https://github.com/mgenware/MEAN-Module)
+[![Build Status](https://img.shields.io/travis/mgenware/auto-lit-tag-name-map.svg?style=flat-square&label=Build+Status)](https://travis-ci.org/mgenware/auto-lit-tag-name-map)
+[![npm version](https://img.shields.io/npm/v/auto-lit-tag-name-map.svg?style=flat-square)](https://npmjs.com/package/auto-lit-tag-name-map)
+[![Node.js Version](http://img.shields.io/node/v/auto-lit-tag-name-map.svg?style=flat-square)](https://nodejs.org/en/)
+
+Auto set TypeScript HTMLElementTagNameMap for lit-element.
 
 Before:
 
