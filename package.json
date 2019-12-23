@@ -31,6 +31,7 @@
   "devDependencies": {
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.12.21",
+    "@types/prettier": "^1.19.0",
     "@typescript-eslint/eslint-plugin": "^2.12.0",
     "@typescript-eslint/parser": "^2.12.0",
     "cross-env": "^6.0.3",
@@ -44,6 +45,7 @@
   "dependencies": {
     "fast-glob": "^3.1.1",
     "m-fs": "^2.3.4",
-    "meow": "^6.0.0"
+    "meow": "^6.0.0",
+    "prettier": "^1.19.1"
   }
 }

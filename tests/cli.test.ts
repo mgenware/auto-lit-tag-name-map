@@ -37,3 +37,41 @@ declare global {
 `,
   );
 });
+
+it('Prettier', async () => {
+  const src = `import { html, customElement, property } from 'lit-element';
+@customElement('my-element')
+export class MyElement extends LitElement { }
+declare global {
+        interface HTMLElementTagNameMap {
+        "foo-bar": FooBar;
+    }
+}`;
+  const config = `module.exports = {
+  singleQuote: true,
+  trailingComma: 'all',
+  endOfLine: 'lf',
+};`;
+  const srcFile = await tw(src);
+  const configFile = await tw(config, '.prettier.js');
+  console.log('🚒', configFile);
+  await execAsync(
+    `node ./dist/main.js "${srcFile}" --prettier "${configFile}"`,
+  );
+  await sleep(50);
+  const fileContents = await mfs.readTextFileAsync(srcFile);
+  assert.equal(
+    fileContents,
+    `import { html, customElement, property } from 'lit-element';
+@customElement('my-element')
+export class MyElement extends LitElement {
+}
+declare global {
+    interface HTMLElementTagNameMap {
+        'foo-bar': FooBar;
+        'my-element': MyElement;
+    }
+}
+`,
+  );
+});
