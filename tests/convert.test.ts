@@ -119,3 +119,32 @@ declare global {
   const res = convert(src, ts.ScriptTarget.ES2015);
   assert.equal(res, null);
 });
+
+it('Preserve comments', async () => {
+  const src = `import { html, customElement, property } from 'lit-element';
+@customElement('my-element') // comment
+export class MyElement extends LitElement { }
+// comment
+declare global {
+        interface HTMLElementTagNameMap {
+        "foo-bar": FooBar; // comment
+    }
+}`;
+
+  const res = convert(src, ts.ScriptTarget.ES2015);
+  assert.equal(
+    res,
+    `import { html, customElement, property } from 'lit-element';
+@customElement('my-element') // comment
+export class MyElement extends LitElement {
+}
+// comment
+declare global {
+    interface HTMLElementTagNameMap {
+        "foo-bar": FooBar; // comment
+        "my-element": MyElement;
+    }
+}
+`,
+  );
+});
