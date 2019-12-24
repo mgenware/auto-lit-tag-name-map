@@ -3,13 +3,14 @@ import * as tw from 'temp-write';
 import * as mfs from 'm-fs';
 import * as util from 'util';
 import { exec } from 'child_process';
+import * as helper from './helper';
 const execAsync = util.promisify(exec);
 
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-it('CLI input file', async () => {
+it('Default mode', async () => {
   const src = `import { html, customElement, property } from 'lit-element';
 @customElement('my-element')
 export class MyElement extends LitElement { }
@@ -38,7 +39,7 @@ declare global {
   );
 });
 
-it('Prettier', async () => {
+it('Default mode + Prettier', async () => {
   const src = `import { html, customElement, property } from 'lit-element';
 @customElement('my-element')
 export class MyElement extends LitElement { }
@@ -47,15 +48,11 @@ declare global {
         "foo-bar": FooBar;//comment
     }
 }`;
-  const config = `module.exports = {
-  singleQuote: true,
-  trailingComma: 'all',
-  endOfLine: 'lf',
-};`;
+
   const srcFile = await tw(src);
-  const configFile = await tw(config, '.prettier.js');
+  const ptConfigFile = await helper.prettierConfigFile();
   await execAsync(
-    `node ./dist/main.js "${srcFile}" --prettier "${configFile}"`,
+    `node ./dist/main.js "${srcFile}" --prettier "${ptConfigFile}"`,
   );
   await sleep(50);
   const fileContents = await mfs.readTextFileAsync(srcFile);

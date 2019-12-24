@@ -20,8 +20,9 @@ const cli = parseArgs(
       <pattern> File search pattern.
  
     Options
-      --prettier  Prettier config file used to format the files to be rewritten.
-      --dry-run   Do not rewrite any file, but show a list of files to be rewritten.
+      --prettier   Prettier config file used to format the files to be rewritten.
+      --dry-run    Do not rewrite any file, but show a list of files to be rewritten.
+      --safe-mode 
 
     Examples
       $ ${CMD} ./src/components/**/*.ts --prettier ./.prettierrc.js
@@ -32,6 +33,9 @@ const cli = parseArgs(
         type: 'string',
       },
       dryRun: {
+        type: 'boolean',
+      },
+      safeMode: {
         type: 'boolean',
       },
     },
@@ -62,17 +66,30 @@ const cli = parseArgs(
   if (!files || !files.length) {
     console.warn(`No file matches the pattern "${glob}"`);
   }
+
+  const { flags } = cli;
   await Promise.all(
     files.map(async file => {
       const contents = await mfs.readTextFileAsync(file);
-      let converted = convert(contents, ts.ScriptTarget.ESNext);
+      let converted = convert(
+        contents,
+        ts.ScriptTarget.ESNext,
+        !!flags.safeMode,
+      );
       // `convert` returns null if the current file doesn't need to be rewritten.
       if (converted !== null) {
         if (prettierConfig) {
           converted = prettier.format(converted, prettierConfig);
         }
+        // Print the file to be rewritten.
         console.log(file);
-        if (!cli.flags.dryRun) {
+        if (!flags.dryRun) {
+          if (flags.safeMode) {
+            // On safe mode, the result of `convert` is the code to be appended to
+            // the original file.
+            converted =
+              contents + (contents.endsWith('\n') ? '' : '\n') + converted;
+          }
           await mfs.writeFileAsync(file, converted);
         }
       }

@@ -12,7 +12,7 @@ declare global {
     }
 }`;
 
-  const res = convert(src, ts.ScriptTarget.ES2015);
+  const res = convert(src, ts.ScriptTarget.ES2015, false);
   assert.equal(
     res,
     `import { html, customElement, property } from 'lit-element';
@@ -39,7 +39,7 @@ declare global {
     }
 }`;
 
-  const res = convert(src, ts.ScriptTarget.ES2015);
+  const res = convert(src, ts.ScriptTarget.ES2015, false);
   assert.equal(
     res,
     `import { html, customElement, property } from 'lit-element';
@@ -67,7 +67,7 @@ const i = 123;
 export class MyElement2 extends BaseElement { }
 `;
 
-  const res = convert(src, ts.ScriptTarget.ES2015);
+  const res = convert(src, ts.ScriptTarget.ES2015, false);
   assert.equal(
     res,
     `import { html, customElement, property } from 'lit-element';
@@ -101,7 +101,7 @@ declare global {
     }
 }`;
 
-  const res = convert(src, ts.ScriptTarget.ES2015);
+  const res = convert(src, ts.ScriptTarget.ES2015, false);
   assert.equal(res, null);
 });
 
@@ -116,7 +116,7 @@ declare global {
     }
 }`;
 
-  const res = convert(src, ts.ScriptTarget.ES2015);
+  const res = convert(src, ts.ScriptTarget.ES2015, false);
   assert.equal(res, null);
 });
 
@@ -131,7 +131,7 @@ declare global {
     }
 }`;
 
-  const res = convert(src, ts.ScriptTarget.ES2015);
+  const res = convert(src, ts.ScriptTarget.ES2015, false);
   assert.equal(
     res,
     `import { html, customElement, property } from 'lit-element';
@@ -147,4 +147,38 @@ declare global {
 }
 `,
   );
+});
+
+it('Safe mode - success', async () => {
+  const src = `import { html, customElement, property } from 'lit-element';
+@customElement('my-element')
+export class MyElement extends LitElement { }
+@customElement('my-element2')
+export class MyElement2 extends LitElement { }
+`;
+
+  const res = convert(src, ts.ScriptTarget.ES2015, true);
+  assert.equal(
+    res,
+    `declare global {
+  interface HTMLElementTagNameMap {
+    'my-element': MyElement;
+    'my-element2': MyElement2;
+  }
+}
+`,
+  );
+});
+
+it('Safe mode - ignored', async () => {
+  const src = `import { html, customElement, property } from 'lit-element';
+@customElement('my-element')
+export class MyElement extends LitElement { }
+@customElement('my-element2')
+export class MyElement2 extends LitElement { }
+declare global { }
+`;
+
+  const res = convert(src, ts.ScriptTarget.ES2015, true);
+  assert.equal(res, null);
 });

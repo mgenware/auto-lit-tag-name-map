@@ -148,9 +148,22 @@ function createModuleDeclaration(
   );
 }
 
+function constructTagDefsForSafeMode(tags: Map<string, string>): string {
+  const props = [...tags.entries()].map(
+    ([key, value]) => `    '${key}': ${value};`,
+  );
+  return `declare global {
+  interface HTMLElementTagNameMap {
+${props.join('\n')}
+  }
+}
+`;
+}
+
 export default function convert(
   src: string,
   scriptTarget: ts.ScriptTarget,
+  safeMode: boolean,
 ): string | null {
   try {
     const sourceFile = ts.createSourceFile(
@@ -180,6 +193,16 @@ export default function convert(
     }
 
     if (!tags.size) {
+      return null;
+    }
+
+    // If safe mode is on and no global module was declared, return a global module
+    // declaration with tags defined. Otherwise, return null cuz safe mode does not
+    // mess with AST.
+    if (safeMode) {
+      if (!declareGlobalFound) {
+        return constructTagDefsForSafeMode(tags);
+      }
       return null;
     }
 
