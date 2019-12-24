@@ -9,10 +9,26 @@ Auto set TypeScript HTMLElementTagNameMap for lit-element.
 
 ## Limitations
 
-### Empty lines are not preserved
+auto-lit-tag-name-map has two modes:
 
-- TypeScript compiler emit API does not preserve empty lines. [issue](https://github.com/Microsoft/TypeScript/issues/843).
-- Prettier does not add lines if they were removed. [issue](https://github.com/prettier/prettier/issues/1603).
+### Default mode
+
+- Pros:
+  - Uses TypeScript AST to parse and write source code. Can handle all edge cases (e.g. `declare global` not declared, `HTMLElementTagNameMap` not declared, `HTMLElementTagNameMap` declared but does not contain the right custom element tags, etc).
+- Cons:
+  - TypeScript compiler emit API does not preserve empty lines between classes or functions. [issue](https://github.com/Microsoft/TypeScript/issues/843).
+  - Prettier does not add lines if they were removed. [issue](https://github.com/prettier/prettier/issues/1603).
+
+### Safe mode
+
+- Pros:
+  - To address the issue above, safe mode only uses TypeScript AST to analyze files, once it encounters an edge case mentioned above, it simply ignores the target file. Therefore, it can only handle one situation where there is no `declare global` declared in target file. In this case, it constructs a `declare global` block with `HTMLElementTagNameMap` inside and appends the block of code to the end of the target file.
+- Cons:
+  - Cannot handle edge cases mentioned above.
+
+### Prettier
+
+In both modes, auto-lit-tag-name-map will avoid rewriting files that look good. It's also recommended to use prettier (pass a prettier config file path via `--prettier` CLI option) to format rewritten files.
 
 ## Usage
 
@@ -24,9 +40,10 @@ Inputs
   <pattern> File search pattern.
 
 Options
-  --prettier  Prettier config file used to format the files to be rewritten.
-  --dry-run   Do not rewrite any file, but show a list of files to be rewritten.
+  --prettier   Prettier config file used to format the files to be rewritten.
+  --dry-run    Do not rewrite any file, but show a list of files to be rewritten.
+  --safe-mode  Enable safe mode, see repo README.md for details.
 
 Examples
-  $ npx auto-lit-tag-name-map@1 ./src/components/**/*.ts --prettier ./.prettierrc.js
+  $ npx auto-lit-tag-name-map@1 ./src/components/**/*.ts --safe-mode --prettier ./.prettierrc.js
 ```

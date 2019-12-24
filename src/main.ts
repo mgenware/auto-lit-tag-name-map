@@ -22,10 +22,10 @@ const cli = parseArgs(
     Options
       --prettier   Prettier config file used to format the files to be rewritten.
       --dry-run    Do not rewrite any file, but show a list of files to be rewritten.
-      --safe-mode 
+      --safe-mode  Enable safe mode, see repo README.md for details.
 
     Examples
-      $ ${CMD} ./src/components/**/*.ts --prettier ./.prettierrc.js
+      $ ${CMD} ./src/components/**/*.ts --safe-mode --prettier ./.prettierrc.js
 `,
   {
     flags: {
