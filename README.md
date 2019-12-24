@@ -18,12 +18,15 @@ Auto set TypeScript HTMLElementTagNameMap for lit-element.
 
 ```
 Usage
-$ npx auto-lit-tag-name-map@1 <pattern> [options]
+  $ npx auto-lit-tag-name-map@1 <pattern> [options]
+
+Inputs
   <pattern> File search pattern.
 
-  Options
-    --prettier  Prettier config file used to format the files to be rewritten.
+Options
+  --prettier  Prettier config file used to format the files to be rewritten.
+  --dry-run   Do not rewrite any file, but show a list of files to be rewritten.
 
-  Examples
-      $ auto-lit-tag-name-map@1 ./src/components/**/*.ts --prettier ./.prettierrc.js
+Examples
+  $ npx auto-lit-tag-name-map@1 ./src/components/**/*.ts --prettier ./.prettierrc.js
 ```

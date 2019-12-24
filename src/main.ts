@@ -15,10 +15,13 @@ const cli = parseArgs(
   `
     Usage
       $ ${CMD} <pattern> [options]
-    <pattern> File search pattern.
+
+    Inputs
+      <pattern> File search pattern.
  
     Options
       --prettier  Prettier config file used to format the files to be rewritten.
+      --dry-run   Do not rewrite any file, but show a list of files to be rewritten.
 
     Examples
       $ ${CMD} ./src/components/**/*.ts --prettier ./.prettierrc.js
@@ -27,6 +30,9 @@ const cli = parseArgs(
     flags: {
       inputFile: {
         type: 'string',
+      },
+      dryRun: {
+        type: 'boolean',
       },
     },
   },
@@ -66,7 +72,9 @@ const cli = parseArgs(
           converted = prettier.format(converted, prettierConfig);
         }
         console.log(file);
-        await mfs.writeFileAsync(file, converted);
+        if (!cli.flags.dryRun) {
+          await mfs.writeFileAsync(file, converted);
+        }
       }
     }),
   );
