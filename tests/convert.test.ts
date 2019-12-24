@@ -5,7 +5,7 @@ import * as ts from 'typescript';
 it('Add a member to HTMLElementTagNameMap', async () => {
   const src = `import { html, customElement, property } from 'lit-element';
 @customElement('my-element')
-export class MyElement extends LitElement { }
+export class MyElement extends LitElement { }//comment
 declare global {
         interface HTMLElementTagNameMap {
         "foo-bar": FooBar;
@@ -18,7 +18,7 @@ declare global {
     `import { html, customElement, property } from 'lit-element';
 @customElement('my-element')
 export class MyElement extends LitElement {
-}
+} //comment
 declare global {
     interface HTMLElementTagNameMap {
         "foo-bar": FooBar;
@@ -32,7 +32,7 @@ declare global {
 it('Add HTMLElementTagNameMap', async () => {
   const src = `import { html, customElement, property } from 'lit-element';
 @customElement('my-element')
-export class MyElement extends LitElement { }
+export class MyElement extends LitElement { }//comment
 declare global {
     interface MyInterface {
         a?: int;
@@ -45,7 +45,7 @@ declare global {
     `import { html, customElement, property } from 'lit-element';
 @customElement('my-element')
 export class MyElement extends LitElement {
-}
+} //comment
 declare global {
     interface MyInterface {
         a?: int;
@@ -61,7 +61,7 @@ declare global {
 it('Add global module', async () => {
   const src = `import { html, customElement, property } from 'lit-element';
 @customElement('my-element')
-export class MyElement extends LitElement { }
+export class MyElement extends LitElement { }//comment
 const i = 123;
 @customElement('my-element2')
 export class MyElement2 extends BaseElement { }
@@ -73,7 +73,7 @@ export class MyElement2 extends BaseElement { }
     `import { html, customElement, property } from 'lit-element';
 @customElement('my-element')
 export class MyElement extends LitElement {
-}
+} //comment
 const i = 123;
 @customElement('my-element2')
 export class MyElement2 extends BaseElement {

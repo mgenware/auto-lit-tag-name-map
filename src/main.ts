@@ -88,7 +88,7 @@ const cli = parseArgs(
             // On safe mode, the result of `convert` is the code to be appended to
             // the original file.
             converted =
-              contents + (contents.endsWith('\n') ? '' : '\n') + converted;
+              contents + (contents.endsWith('\n') ? '\n' : '\n\n') + converted;
           }
           await mfs.writeFileAsync(file, converted);
         }
