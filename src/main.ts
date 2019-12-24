@@ -14,10 +14,10 @@ const CMD = `npx ${pkg.name}@${parseInt(pkg.version.split('.')[0])}`;
 const cli = parseArgs(
   `
     Usage
-      $ ${CMD} <pattern> [options]
+      $ ${CMD} "<glob>" [options]
 
     Inputs
-      <pattern> File search pattern.
+      <glob> Glob search patterns (always quote the glob to avoid misinterpretation by the shell).
  
     Options
       --prettier   Prettier config file used to format the files to be rewritten.
@@ -25,7 +25,7 @@ const cli = parseArgs(
       --safe-mode  Enable safe mode, see repo README.md for details.
 
     Examples
-      $ ${CMD} ./src/components/**/*.ts --safe-mode --prettier ./.prettierrc.js
+      $ ${CMD} "./src/components/**/*.ts" --safe-mode --prettier ./.prettierrc.js
 `,
   {
     flags: {
@@ -64,7 +64,9 @@ const cli = parseArgs(
   }
   const files = await fg([glob]);
   if (!files || !files.length) {
-    console.warn(`No file matches the pattern "${glob}"`);
+    console.warn(
+      `No file matches the pattern "${glob}" (NOTE: always quote the glob to avoid misinterpretation by the shell)`,
+    );
   }
 
   const { flags } = cli;

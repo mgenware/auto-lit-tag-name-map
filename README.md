@@ -34,10 +34,10 @@ In both modes, auto-lit-tag-name-map will avoid rewriting files that look good. 
 
 ```
 Usage
-  $ npx auto-lit-tag-name-map@1 <pattern> [options]
+  $ npx auto-lit-tag-name-map@1 "<glob>" [options]
 
 Inputs
-  <pattern> File search pattern.
+  <glob> Glob search patterns (always quote the glob to avoid misinterpretation by the shell).
 
 Options
   --prettier   Prettier config file used to format the files to be rewritten.
@@ -45,5 +45,5 @@ Options
   --safe-mode  Enable safe mode, see repo README.md for details.
 
 Examples
-  $ npx auto-lit-tag-name-map@1 ./src/components/**/*.ts --safe-mode --prettier ./.prettierrc.js
+  $ npx auto-lit-tag-name-map@1 "./src/components/**/*.ts" --safe-mode --prettier ./.prettierrc.js
 ```
